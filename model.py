@@ -74,7 +74,10 @@ def test_UNet_output_shape():
     x = torch.randn(3, 1, 256, 256)  # Example input tensor
     output = model(x)
     assert output.shape == x.shape, "Output shape is incorrect"
-
+    model = UNet(in_channels=1, out_channels=1)
+    x = torch.randn(3, 1, 51, 51)  # Example input tensor
+    output = model(x)
+    assert output.shape == x.shape, "Output shape is incorrect"
 
 def test_UNet_layers():
     model = UNet()
