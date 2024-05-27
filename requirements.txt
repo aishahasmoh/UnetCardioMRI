@@ -4,3 +4,6 @@ pandas
 torch
 torchvision
 imutils
+tqdm
+matplotlib
+opencv-python

@@ -38,7 +38,9 @@ Input layer size: (batch_size, image_width, image_height, in_channels)
 
 
 ```sh
+virtualenv -p python3 torch
 source ~/torch/bin/activate
+pip install -r requirements.txt
 
 unzip UKBB-CMR-images.zip -d images
 mv images/Traced/SQ/Traced\ 4\ chamber/ images/Traced/SQ/Traced/
