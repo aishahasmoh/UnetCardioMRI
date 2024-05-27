@@ -1,9 +1,10 @@
-import cv2
 import os
-import matplotlib.pyplot as plt
-import numpy as np
-
+import cv2
+from pathlib import Path
+import shutil
 from config import *
+
+
 def generate_binary_masks(img, filename):
     # mapping from color to hsv range. from empirical analysis of traces.
     colors = {
@@ -35,13 +36,24 @@ def generate_binary_masks(img, filename):
 
 
 def preprocess_images(folder):
-    for filename in os.listdir(folder):
-        img = cv2.imread(os.path.join(folder,filename))
-        if img is not None:
-            # generate a mask of blue, green, and red masks
-            masks = generate_binary_masks(img, filename)
+    traced_path = os.path.join(folder, "Traced")
+    original_path = os.path.join(folder, "Originals")
+    for filename in os.listdir(traced_path):
+        # copy original untraced image to originals file
+        # only copy original images with matching masks
+        original_file = Path(os.path.join(original_path,filename))
+        if original_file.is_file():
+            shutil.copy(original_file, os.path.join(IMAGE_DATASET_PATH,filename))
+            img = cv2.imread(os.path.join(traced_path,filename))
+            if img is not None:
+                # generate a mask of blue, green, and red masks
+                masks = generate_binary_masks(img, filename)
+
+        else:
+            print(f"Original image {original_file} doesn't exist.")
     return
 
+# generate 3 masks for each annotated image.
 images = []
 for folder in os.listdir(LABELED_DATASET_PATH):
-    preprocess_images(os.path.join(LABELED_DATASET_PATH, folder, "Traced"))
+    preprocess_images(os.path.join(LABELED_DATASET_PATH, folder))
