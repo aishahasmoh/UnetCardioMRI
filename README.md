@@ -56,16 +56,16 @@ An example of the original image and masks generated is shown here:
 ![content/sample_img_masks.png](content/sample_img_masks.png)
 
 ## Usage 
-To create a virtual environment:
+Create a virtual environment:
 ```sh
 virtualenv -p python3 torch
 ```
-To use the virtual environment:
+Activate the virtual environment and setup the requirements:
 ```sh
 source ~/torch/bin/activate
 pip install -r requirements.txt
 ```
-To load the dataset in `images` directory and create `output` directory for
+Load the dataset in `images` directory and create `output` directory for
 saving the model:
 ```sh
 unzip UKBB-CMR-images.zip -d images
@@ -87,8 +87,15 @@ mkdir images/original
 
 mkdir output
 ```
-To pre-process images in the dataset to generate 3 binary masks for each image:
+Pre-process images in the dataset to generate 3 binary masks for each image:
 ```sh
 python pre_process.py
 ```
-
+Train the model
+```sh
+python train.py
+```
+Use the model for prediction
+```sh
+python predict.py
+```
