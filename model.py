@@ -14,7 +14,7 @@ from config import *
 
 # Encoder: multiple layers of (double convolution + max pooling)
 
-# double convolution: 2 (same size convolutions + batch normalization + Relu) 
+# double convolution: 2 (same size convolutions + batch normalization + Relu)
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(DoubleConv, self).__init__()
@@ -42,9 +42,9 @@ class UNet(nn.Module):
 
         # encoder: only save double convolution layers. max pooling has no parameters
         # layer1: (batch_size, width, height, in_channels) -> (batch_size, width, height, conv_sizes[0])
-        # max_pooling1: (batch_size, width/2, height/2, conv_sizes[0]) 
-        # layer12 (batch_size, width/2, height/2, conv_sizes[0]) -> (batch_size, width/2, height/2, conv_sizes[1]) 
-        # max_pooling1: (batch_size, width/4, height/4, conv_sizes[1]) 
+        # max_pooling1: (batch_size, width/2, height/2, conv_sizes[0])
+        # layer12 (batch_size, width/2, height/2, conv_sizes[0]) -> (batch_size, width/2, height/2, conv_sizes[1])
+        # max_pooling1: (batch_size, width/4, height/4, conv_sizes[1])
 
         for size in conv_sizes:
             self.encoder.append(DoubleConv(in_channels, size))
@@ -54,9 +54,9 @@ class UNet(nn.Module):
 
         # decoder: only save double convolution layers. downsampling between layers
         # layer1: (batch_size, width, height, in_channels) -> (batch_size, width, height, conv_sizes[0])
-        # max_pooling1: (batch_size, width/2, height/2, conv_sizes[0]) 
-        # layer12 (batch_size, width/2, height/2, conv_sizes[0]) -> (batch_size, width/2, height/2, conv_sizes[1]) 
-        # max_pooling1: (batch_size, width/4, height/4, conv_sizes[1]) 
+        # max_pooling1: (batch_size, width/2, height/2, conv_sizes[0])
+        # layer12 (batch_size, width/2, height/2, conv_sizes[0]) -> (batch_size, width/2, height/2, conv_sizes[1])
+        # max_pooling1: (batch_size, width/4, height/4, conv_sizes[1])
 
         # decoder, include skip connections,
         for size in reversed(conv_sizes):
@@ -67,23 +67,22 @@ class UNet(nn.Module):
         self.outputs = nn.Conv2d(conv_sizes[0], out_channels, kernel_size=1)
 
     def forward(self, x):
-        skips = []
+        skip_connections = []
         for layer in self.encoder:
             x = layer(x)
-            skips.append(x)
+            skip_connections.append(x)
             x = self.pool(x) # down sampling width and height by half
 
         x = self.encode_to_decode(x)
-        skips.reverse()
+        skip_connections.reverse()
 
         for i, layer in enumerate(self.decoder): # up and then double conv
             if (i % 2) == 0: # ConvTranspose2d layer
                 x = layer(x)
-                if x.shape != skips[i//2].shape: # crop to have matching sizes
-                    x = TF.resize(x, size=skips[i//2].shape[2:])
-                x = torch.cat((skips[i//2], x), dim=1) # concatenate 
+                if x.shape != skip_connections[i//2].shape: # crop to have matching sizes
+                    x = TF.resize(x, size=skip_connections[i//2].shape[2:])
+                x = torch.cat((skip_connections[i//2], x), dim=1) # concatenate
             else: # DoubleConv layer
                 x = layer(x)
 
         return self.outputs(x)
-

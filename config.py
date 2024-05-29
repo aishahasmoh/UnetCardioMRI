@@ -27,19 +27,20 @@ INPUT_IMAGE_HEIGHT = 224
 # define the number of channels in the input, number of classes,
 # and sizes of layers in the U-Net model
 NUM_CHANNELS = 3 # TODO: should it be 1?
-NUM_CLASSES = 1 # TODO: should it be 4?
-LAYER_SIZES = [64, 128, 256, 512] # TODO: mayeb start with 16?
+NUM_CLASSES = 3 # TODO: should it be 3?
+LAYER_SIZES = [8, 16, 32, 64, 128] # TODO: mayeb start with 16?
 CONV_K = 3 # convolution kernel size
 POOL_K = 2 # max pooling kernel size
 POOL_S = 2 # max pooling stride size
 UP_CONV_K = 2 # size of up convoltuion kernel
 UP_CONV_S = 2 # size of up convoltuion stride
-DROPOUT = 0.1 # percentage of droppoed out pixels to prevent overfitting
+DROPOUT = 0.2 # percentage of droppoed out pixels to prevent overfitting
 
 # Training hyper-parameters
 # initialize learning rate, number of training epochs , and batch size
-INIT_LR = 0.001
-NUM_EPOCHS = 20
+INIT_LR = 0.0001 # optimizer's initial learning rate
+WEIGHT_DECAY = 1e-8 # weight decay (L2 regularization) for the optimizer
+NUM_EPOCHS = 50
 BATCH_SIZE = 8
 
 
@@ -64,6 +65,3 @@ print(f"Using device: {DEVICE}")
 
 # determine if we will be pinning memory during data loading
 PIN_MEMORY = True if DEVICE == "cuda" else False
-
-# create a log that will be used later for plotting results.
-Log = {"train_loss": [], "test_loss": []}

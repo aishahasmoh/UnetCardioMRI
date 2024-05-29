@@ -97,10 +97,8 @@ def main():
     print(f"Successfully loaded training dataset of size {len(train_dataset)}")
     print(f"Successfully loaded testing dataset of size {len(test_dataset)}")
 
-
-
     # shuffle the dataset before iterating over it using the data loader.
-    # batch size = 8 to avoid memory issues 
+    # batch size = 8 to avoid memory issues
 
     train_loader = DataLoader(train_dataset, shuffle=True, batch_size=BATCH_SIZE,
                                 pin_memory=PIN_MEMORY, num_workers=os.cpu_count())
@@ -108,22 +106,31 @@ def main():
                                 pin_memory=PIN_MEMORY, num_workers=os.cpu_count())
 
     model = UNet().to(DEVICE)
+    # TODO: chenge the loss function?
+    # nn.CrossEntropyLoss is usually applied for multi class segmentation.
+    # your target should be a LongTensor, should not have the channel dimension,
+    # and should contain the class indices in [0, nb_classes-1].
+    #oss_fn = torch.nn.BCEWithLogitsLoss()
     loss_fn = CrossEntropyLoss()
-    optimizer = Adam(model.parameters(), lr = INIT_LR)
+
+    optimizer = Adam(model.parameters(), lr = INIT_LR, weight_decay=WEIGHT_DECAY)
+    scaler = torch.cuda.amp.GradScaler()
+
+    # create a log that will be used later for plotting results.
+    log = {"train_loss": [], "test_loss": []}
 
 
     # training loop
     print("Training the model...")
     for epoch in range(NUM_EPOCHS):
-        epoch_loss, test_loss = train(train_loader, model, optimizer, loss_fn, test_loader)
-        print(f"EPOCH: {epoch + 1}/{NUM_EPOCHS} Train loss: {epoch_loss}, Test loss: {test_loss}")
-
-
+        train_loss, test_loss = train(train_loader, model, optimizer, loss_fn, 0)
+        print(f"EPOCH: {epoch + 1}/{NUM_EPOCHS} Train loss: {train_loss}, Test loss: {test_loss}")
+        
     # plot the training and test loss
     plt.style.use("ggplot")
     plt.figure()
-    plt.plot(Log["train_loss"], label="train_loss")
-    plt.plot(Log["test_loss"], label="test_loss")
+    plt.plot(log["train_loss"], label="train_loss")
+    plt.plot(log["test_loss"], label="test_loss")
     plt.title("Training/Testing Loss on Dataset")
     plt.xlabel("Epoch #")
     plt.ylabel("Loss")
@@ -131,6 +138,9 @@ def main():
     plt.savefig(PLOT_PATH)
     # serialize the model to disk
     torch.save(model, MODEL_PATH)
+
+    exit(0)
+
 
 if __name__ == "__main__":
     main()   

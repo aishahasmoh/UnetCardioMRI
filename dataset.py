@@ -12,8 +12,6 @@ from config import *
 # batch size of the dataloader = 8.
 # The data was shuffled before batching.
 
-
-
 class CardiacMRIDataset(Dataset):
 	def __init__(self, image_paths, masks_paths, transforms=None):
 		# store the image and mask filepaths, and transforms
@@ -37,9 +35,6 @@ class CardiacMRIDataset(Dataset):
 		blue_mask = cv2.imread(self.blue_mask_paths[idx], 0)
 		red_mask = cv2.imread(self.red_mask_paths[idx], 0)
 		green_mask = cv2.imread(self.green_mask_paths[idx], 0)
-		#blue_mask[blue_mask == 255] = 1.0 # because predictions are output of softmax
-		#red_mask[red_mask == 255] = 1.0 # because predictions are output of softmax
-		#green_mask[green_mask == 255] = 1.0 # because predictions are output of softmax
 
 
 		# check to see if we are applying any transformations
@@ -51,5 +46,6 @@ class CardiacMRIDataset(Dataset):
 			green_mask = self.transforms(green_mask)
 
     # TODO: return the image and 3 masks not only one.
+		masks =  torch.cat([blue_mask, red_mask, green_mask], axis=0)
 		# return a tuple of the image and its mask
-		return img, green_mask
+		return img, masks
