@@ -40,7 +40,7 @@ DROPOUT = 0.2 # percentage of droppoed out pixels to prevent overfitting
 # initialize learning rate, number of training epochs , and batch size
 INIT_LR = 0.0001 # optimizer's initial learning rate
 WEIGHT_DECAY = 1e-8 # weight decay (L2 regularization) for the optimizer
-NUM_EPOCHS = 50
+NUM_EPOCHS = 2
 BATCH_SIZE = 8
 
 

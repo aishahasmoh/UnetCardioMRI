@@ -6,33 +6,36 @@ from torch.utils.data import DataLoader
 from torch.optim import Adam
 from torch.nn import CrossEntropyLoss
 import matplotlib.pyplot as plt
+import numpy as np
 
 from config import *
 from dataset import CardiacMRIDataset
 from model import UNet
 
 
-def train(loader, model, optimizer, loss_fn, test_loader):
+def train(loader, model, optimizer, loss_fn, scaler, log, test_loader):
     train_loss = 0.0
     for bidx, (data, targets) in enumerate(tqdm(loader)):
         model.train()
-        data = data.to(device=DEVICE)
+        data = data.to(device=DEVICE, dtype=torch.float32)
         #targets = targets.float().unsqueeze(1).to(device=DEVICE)
-        targets = targets.float().to(device=DEVICE)
+        targets = targets.to(device=DEVICE)
+        targetd = targets.type(torch.long)
 
         # perform a forward pass and calculate the training loss
-        pred = model(data)
-
-        #print(f"x size = {data.size()} y size = {targets.size()}, pred = {pred.size()}")
-
-        loss = loss_fn(pred, targets)
-        # first, zero out any previously accumulated gradients, then
+        with torch.cuda.amp.autocast():
+          pred = model(data)
+          loss = loss_fn(pred, targets)
+          # add the loss to the total training loss so far
+          train_loss += loss
+        # backward
+        # zero out previously accumulated gradients, then
         # perform backpropagation, and then update model parameters
         optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        # add the loss to the total training loss so far
-        train_loss += loss
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
+
 
     test_loss = 0.0
     # switch off autograd
@@ -47,16 +50,11 @@ def train(loader, model, optimizer, loss_fn, test_loader):
             pred = model(x)
             test_loss += loss_fn(pred, y)
 
-    # calculate the average training and validation loss
-    train_loss = train_loss / (len(loader.dataset) // BATCH_SIZE)
-    test_loss = test_loss / (len(test_loader.dataset) // BATCH_SIZE)
-
     # update our training history
-    Log["train_loss"].append(train_loss.cpu().detach().numpy())
-    Log["test_loss"].append(test_loss.cpu().detach().numpy())
+    log["train_loss"].append(train_loss.cpu().detach().numpy())
+    log["test_loss"].append(test_loss.cpu().detach().numpy())
 
     return train_loss, test_loss
-
 
 
 
@@ -123,14 +121,14 @@ def main():
     # training loop
     print("Training the model...")
     for epoch in range(NUM_EPOCHS):
-        train_loss, test_loss = train(train_loader, model, optimizer, loss_fn, 0)
+        train_loss, test_loss = train(train_loader, model, optimizer, loss_fn, scaler, log, test_loader)
         print(f"EPOCH: {epoch + 1}/{NUM_EPOCHS} Train loss: {train_loss}, Test loss: {test_loss}")
-        
-    # plot the training and test loss
+
+    # plot the average training and test loss per epoch
     plt.style.use("ggplot")
     plt.figure()
-    plt.plot(log["train_loss"], label="train_loss")
-    plt.plot(log["test_loss"], label="test_loss")
+    plt.plot(np.array(log["train_loss"]) / (len(train_dataset) // BATCH_SIZE), label="train_loss")
+    plt.plot(np.array(log["test_loss"]) / (len(test_dataset) // BATCH_SIZE), label="test_loss")
     plt.title("Training/Testing Loss on Dataset")
     plt.xlabel("Epoch #")
     plt.ylabel("Loss")
