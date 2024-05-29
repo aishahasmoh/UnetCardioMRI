@@ -37,9 +37,9 @@ class CardiacMRIDataset(Dataset):
 		blue_mask = cv2.imread(self.blue_mask_paths[idx], 0)
 		red_mask = cv2.imread(self.red_mask_paths[idx], 0)
 		green_mask = cv2.imread(self.green_mask_paths[idx], 0)
-		blue_mask[blue_mask == 255] = 1.0 # because predictions are output of softmax
-		red_mask[red_mask == 255] = 1.0 # because predictions are output of softmax
-		green_mask[green_mask == 255] = 1.0 # because predictions are output of softmax
+		#blue_mask[blue_mask == 255] = 1.0 # because predictions are output of softmax
+		#red_mask[red_mask == 255] = 1.0 # because predictions are output of softmax
+		#green_mask[green_mask == 255] = 1.0 # because predictions are output of softmax
 
 
 		# check to see if we are applying any transformations

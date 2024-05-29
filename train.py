@@ -12,7 +12,7 @@ from dataset import CardiacMRIDataset
 from model import UNet
 
 
-def train(loader, model, optimizer, loss_fn, scalar):
+def train(loader, model, optimizer, loss_fn, test_loader):
     train_loss = 0.0
     for bidx, (data, targets) in enumerate(tqdm(loader)):
         model.train()
@@ -48,12 +48,12 @@ def train(loader, model, optimizer, loss_fn, scalar):
             test_loss += loss_fn(pred, y)
 
     # calculate the average training and validation loss
-    train_loss = train_loss / (len(train_dataset) // BATCH_SIZE)
-    test_loss = test_loss / (len(test_dataset) // BATCH_SIZE)
+    train_loss = train_loss / (len(loader.dataset) // BATCH_SIZE)
+    test_loss = test_loss / (len(test_loader.dataset) // BATCH_SIZE)
 
     # update our training history
-    log["train_loss"].append(train_loss.cpu().detach().numpy())
-    log["test_loss"].append(test_loss.cpu().detach().numpy())
+    Log["train_loss"].append(train_loss.cpu().detach().numpy())
+    Log["test_loss"].append(test_loss.cpu().detach().numpy())
 
     return train_loss, test_loss
 
@@ -110,21 +110,20 @@ def main():
     model = UNet().to(DEVICE)
     loss_fn = CrossEntropyLoss()
     optimizer = Adam(model.parameters(), lr = INIT_LR)
-    # create a log that will be used later for plotting results.
-    log = {"train_loss": [], "test_loss": []}
+
 
     # training loop
     print("Training the model...")
     for epoch in range(NUM_EPOCHS):
-        epoch_loss, test_loss = train(train_loader, model, optimizer, loss_fn, 0)
-        print(f"EPOCH: {epoch + 1}/{NUM_EPOCHS} Train loss: {epoch_loss:.6f}, Test loss: {test_loss:.4f}")
+        epoch_loss, test_loss = train(train_loader, model, optimizer, loss_fn, test_loader)
+        print(f"EPOCH: {epoch + 1}/{NUM_EPOCHS} Train loss: {epoch_loss}, Test loss: {test_loss}")
 
 
     # plot the training and test loss
     plt.style.use("ggplot")
     plt.figure()
-    plt.plot(log["train_loss"], label="train_loss")
-    plt.plot(log["test_loss"], label="test_loss")
+    plt.plot(Log["train_loss"], label="train_loss")
+    plt.plot(Log["test_loss"], label="test_loss")
     plt.title("Training/Testing Loss on Dataset")
     plt.xlabel("Epoch #")
     plt.ylabel("Loss")

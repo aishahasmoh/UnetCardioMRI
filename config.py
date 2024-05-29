@@ -39,7 +39,7 @@ DROPOUT = 0.1 # percentage of droppoed out pixels to prevent overfitting
 # Training hyper-parameters
 # initialize learning rate, number of training epochs , and batch size
 INIT_LR = 0.001
-NUM_EPOCHS = 2
+NUM_EPOCHS = 20
 BATCH_SIZE = 8
 
 
@@ -64,3 +64,6 @@ print(f"Using device: {DEVICE}")
 
 # determine if we will be pinning memory during data loading
 PIN_MEMORY = True if DEVICE == "cuda" else False
+
+# create a log that will be used later for plotting results.
+Log = {"train_loss": [], "test_loss": []}
