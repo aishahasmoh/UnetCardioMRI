@@ -4,6 +4,10 @@
 Image Segmentation classifies each pixel into a class. Either its part of a 
 class or not labeled.
 
+Example inputs and outputs to this image segmentation model is shown here:
+![content/input_output_1.png](content/input_output_1.png)
+![content/input_output_2.png](content/input_output_2.png)
+
 U-Net is an Encoder Decoder  neural network designed for biomedical image
 segmentation. 
 
@@ -83,7 +87,7 @@ mkdir images/original
 
 mkdir output
 ```
-To pre-process images in the dataset to generate 3 binary masks for each image:s
+To pre-process images in the dataset to generate 3 binary masks for each image:
 ```sh
 python pre_process.py
 ```
